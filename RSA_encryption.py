@@ -53,12 +53,12 @@ def set_keys(): # Set the public and private keys
 
     return public_key, private_key, n # Return the public and private keys and n
 
-def encrypt_func(message, e, n): # Encrypt function
-    encrypted_text = pow(message, e, n) # Calculate the encrypted text
+def encrypt_func(message_letter, e, n): # Encrypt function
+    encrypted_text = pow(message_letter, e, n) # Calculate the encrypted text
     return encrypted_text # Return the encrypted text
 
-def decrypt(encrypted_text, d, n): # Decrypt function
-    decrypted = pow(encrypted_text, d, n) # Calculate the decrypted text
+def decrypt(encrypted_text_letter, d, n): # Decrypt function
+    decrypted = pow(encrypted_text_letter, d, n) # Calculate the decrypted text
     return decrypted # Return the decrypted text
 
 def encrypt_and_encode(message, e, n): # Encrypt and encode the message
