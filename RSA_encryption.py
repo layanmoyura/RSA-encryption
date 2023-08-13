@@ -54,37 +54,62 @@ def set_keys(): # Set the public and private keys
     return public_key, private_key, n # Return the public and private keys and n
 
 def encrypt_func(message_letter, e, n): # Encrypt function
-    encrypted_text = pow(message_letter, e, n) # Calculate the encrypted text
+    encrypted_text = pow(message_letter, e, n) # Calculate the encrypted text letter
     return encrypted_text # Return the encrypted text
 
 def decrypt(encrypted_text_letter, d, n): # Decrypt function
-    decrypted = pow(encrypted_text_letter, d, n) # Calculate the decrypted text
+    decrypted = pow(encrypted_text_letter, d, n) # Calculate the decrypted text letter
     return decrypted # Return the decrypted text
 
 def encrypt_and_encode(message, e, n): # Encrypt and encode the message
     encoded = []
+    print("\n")
     for letter in message: # For each letter in the message
-        encoded_num = encrypt_func(ord(letter), e, n) # Encrypt the letter
-        encoded_hex = hex(encoded_num).upper()  # Convert the encrypted number to hexadecimal
+        encrypted_num = encrypt_func(ord(letter), e, n) # Encrypt the letter using the public key
+        encoded_hex = hex(encrypted_num).upper()  # Convert the encrypted number to hexadecimal
         encoded.append(encoded_hex) # Add the hexadecimal to the list
+        print(f"Plaintext: {letter:3}, Plaintext ASCII: {ord(letter):3}, Encrypted ASCII: {encrypted_num:3}, Encrypted and Encoded: {encoded_hex:3}")  # Print the plaintext, plaintext ASCII, encrypted ASCII, and encrypted and encoded
+
+    print("\n")
     return ' '.join(encoded) # Return the list as a string
 
 
 def decode_and_decrypt(encoded, d, n): # Decode and decrypt the message
+    print("\n")
+
     hex_nums = encoded.split('0X')[1:] # Split the hexadecimal numbers
     hex_nums = [int('0x' + c.lower(), 0) for c in hex_nums]  # Convert the hexadecimal to decimal
 
     for i in range(len(hex_nums)): # For each number in the list
-        hex_nums[i] = decrypt(hex_nums[i], d, n) # Decrypt the number
+        enc_letter = hex_nums[i] # Get the encrypted number
+        hex_nums[i] = decrypt(hex_nums[i], d, n) # Decrypt the number using the private key
         hex_nums[i] = chr(hex_nums[i]) # Convert the number to a letter
+        letter = hex_nums[i] # Get the letter
+        print(f"Encrypted and Encoded: {hex(enc_letter).upper():3}, Encrypted ASCII: {enc_letter:3}, Plaintext ASCII: {ord(letter):3}, Decrypted Plaintext: {hex_nums[i]:3}") # Print the encrypted and encoded, encrypted ASCII, plaintext ASCII, and decrypted plaintext
+
     decrypted = ''.join(hex_nums)   # Return the list as a string
+    print("\n")
     return decrypted  # Return the decrypted text 
+
+def print_in_box(text): # print banner in a box
+    
+    length = len(text)
+    border = '+' + '-' * (length + 2) + '+'
+    content = '| ' + text + ' |'
+
+    print(border)
+    print(content)
+    print(border)
 
 
 def main():
+
+    print_in_box("RSA Encryption and Decryption using Python") # Print the banner
+    print("\n")
+
     public_key, private_key, n = set_keys() # Set the public and private keys
 
-    print("RSA Encryption and Decryption using Python") # Print the menu
+    # Print the menu
     print("\n")
     print("1. Encrypt plaintext")
     print("2. Decrypt ciphertext")
@@ -95,14 +120,14 @@ def main():
 
     while choice != "3":
         if choice == "1":
-            message = input("Enter the plaintext: ") # Get the plaintext
+            message = input("Enter the plaintext using public key: ") # Get the plaintext
             encrypted_text = encrypt_and_encode(message, public_key, n) # Encrypt and encode the plaintext
             print("Encrypted text:",  encrypted_text.replace(" ", "")) # Print the encrypted text
 
             print("\n")
         
         elif choice == "2":
-            encrypted_text = input("Enter the ciphertext: ") # Get the ciphertext
+            encrypted_text = input("Enter the ciphertext using private key: ") # Get the ciphertext
             decrypted_text = decode_and_decrypt(encrypted_text, private_key, n) #  Decrypt and decode the ciphertext
             print("Decrypted text:", decrypted_text) #  Print the decrypted text
 
