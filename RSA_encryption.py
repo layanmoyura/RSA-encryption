@@ -1,129 +1,119 @@
-import random
-import math
+import random # Import the random module to generate random numbers for the public and private keys
+import math # Import the math module to gcd function to check if a number is coprime with another number
 
-# A set will be the collection of prime numbers,
-# where we can select random primes p and q
-prime = set()
+def is_prime(num): # Check if a number is prime
+    if num == 2: # 2 is the only even prime number
+        return True # 2 is prime
+    if num < 2 or num % 2 == 0: # If the number is less than 2 or even, it is not prime
+        return False # The number is not prime
+    for n in range(3, int(num ** 0.5) + 2, 2): # Check if the number is divisible by any odd number from 3 to the square root of the number
+        if num % n == 0: # If the number is divisible by any odd number from 3 to the square root of the number, it is not prime
+            return False # The number is not prime
+    return True # The number is prime
 
-public_key = None
-private_key = None
-n = None
+def pick_random_prime(): # Pick a random prime number
+    while True:
+        num = random.randint(1000, 10000) # 4 digit prime number
+        if is_prime(num): # Check if the number is prime
+            return num # Return the prime number
 
-# We will run the function only once to fill the set of
-# prime numbers
-def primefiller():
-	# Method used to fill the primes set is Sieve of
-	# Eratosthenes (a method to collect prime numbers)
-	seive = [True] * 250
-	seive[0] = False
-	seive[1] = False
-	for i in range(2, 250):
-		for j in range(i * 2, 250, i):
-			seive[j] = False
+def set_keys(): # Set the public and private keys
+    prime1 = pick_random_prime() # Pick a random prime number
+    prime2 = pick_random_prime() # Pick another random prime number
 
-	# Filling the prime numbers
-	for i in range(len(seive)):
-		if seive[i]:
-			prime.add(i)
+    print("Picking two random prime numbers.......") # Print the prime numbers
+    print("Prime 1:", prime1) 
+    print("Prime 2:", prime2)
+    print("\n")
 
+    n = prime1 * prime2 # Calculate n
+    fi = (prime1 - 1) * (prime2 - 1) # Calculate torsion
 
-# Picking a random prime number and erasing that prime
-# number from list because p!=q
-def pickrandomprime():
-	global prime
-	k = random.randint(0, len(prime) - 1)
-	it = iter(prime)
-	for _ in range(k):
-		next(it)
+    e = 2 # Pick a random number between 1 and fi
+    while True:
+        if math.gcd(e, fi) == 1: # Check if the number is coprime with fi
+            break # If the number is coprime with fi, stop
+        e += 1 # If the number is not coprime with fi, pick another number
 
-	ret = next(it)
-	prime.remove(ret)
-	return ret
+    public_key = e # Set the public key
 
+    d = 2 # Pick a random number between 1 and fi
+    while True:
+        if (d * e) % fi == 1: # Check if the number is the multiplicative inverse of e
+            break #     If the number is the multiplicative inverse of e, stop
+        d += 1 # If the number is not the multiplicative inverse of e, pick another number
 
-def setkeys():
-	global public_key, private_key, n
-	prime1 = pickrandomprime() # First prime number
-	prime2 = pickrandomprime() # Second prime number
+    private_key = d # Set the private key
 
-	n = prime1 * prime2
-	fi = (prime1 - 1) * (prime2 - 1)
+    print("Generating public and private keys.......") # Print the public and private keys
+    print("Public key(e):", public_key )
+    print("Private key(d):", private_key)
+    print("N:", n)
+    print("\n")
 
-	e = 2
-	while True:
-		if math.gcd(e, fi) == 1:
-			break
-		e += 1
+    return public_key, private_key, n # Return the public and private keys and n
 
-	# d = (k*Φ(n) + 1) / e for some integer k
-	public_key = e
+def encrypt_func(message, e, n): # Encrypt function
+    encrypted_text = pow(message, e, n) # Calculate the encrypted text
+    return encrypted_text # Return the encrypted text
 
-	d = 2
-	while True:
-		if (d * e) % fi == 1:
-			break
-		d += 1
+def decrypt(encrypted_text, d, n): # Decrypt function
+    decrypted = pow(encrypted_text, d, n) # Calculate the decrypted text
+    return decrypted # Return the decrypted text
 
-	private_key = d
-
-
-# To encrypt the given number
-def encrypt(message):
-	global public_key, n
-	e = public_key
-	encrypted_text = 1
-	while e > 0:
-		encrypted_text *= message
-		encrypted_text %= n
-		e -= 1
-	return encrypted_text
+def encrypt_and_encode(message, e, n): # Encrypt and encode the message
+    encoded = []
+    for letter in message: # For each letter in the message
+        encoded_num = encrypt_func(ord(letter), e, n) # Encrypt the letter
+        encoded_hex = hex(encoded_num).upper()  # Convert the encrypted number to hexadecimal
+        encoded.append(encoded_hex) # Add the hexadecimal to the list
+    return ' '.join(encoded) # Return the list as a string
 
 
-# To decrypt the given number
-def decrypt(encrypted_text):
-	global private_key, n
-	d = private_key
-	decrypted = 1
-	while d > 0:
-		decrypted *= encrypted_text
-		decrypted %= n
-		d -= 1
-	return decrypted
+def decode_and_decrypt(encoded, d, n): # Decode and decrypt the message
+    hex_nums = encoded.split('0X')[1:] # Split the hexadecimal numbers
+    hex_nums = [int('0x' + c.lower(), 0) for c in hex_nums]  # Convert the hexadecimal to decimal
+
+    for i in range(len(hex_nums)): # For each number in the list
+        hex_nums[i] = decrypt(hex_nums[i], d, n) # Decrypt the number
+        hex_nums[i] = chr(hex_nums[i]) # Convert the number to a letter
+    decrypted = ''.join(hex_nums)   # Return the list as a string
+    return decrypted  # Return the decrypted text 
 
 
-# First converting each character to its ASCII value and
-# then encoding it then decoding the number to get the
-# ASCII and converting it to character
-def encoder(message):
-	encoded = []
-	# Calling the encrypting function in encoding function
-	for letter in message:
-		encoded.append(encrypt(ord(letter)))
-	return encoded
+def main():
+    public_key, private_key, n = set_keys() # Set the public and private keys
 
+    print("RSA Encryption and Decryption using Python") # Print the menu
+    print("\n")
+    print("1. Encrypt plaintext")
+    print("2. Decrypt ciphertext")
+    print("3. Exit")
+    print("\n")
 
-def decoder(encoded):
-	s = ''
-	# Calling the decrypting function decoding function
-	for num in encoded:
-		s += chr(decrypt(num))
-	return s
+    choice = input("Enter your choice: ") # Get the user's choice
 
+    while choice != "3":
+        if choice == "1":
+            message = input("Enter the plaintext: ") # Get the plaintext
+            encrypted_text = encrypt_and_encode(message, public_key, n) # Encrypt and encode the plaintext
+            print("Encrypted text:",  encrypted_text.replace(" ", "")) # Print the encrypted text
 
-if __name__ == '__main__':
-	primefiller()
-	setkeys()
-	message = "Test Message"
-	# Uncomment below for manual input
-	# message = input("Enter the message\n")
-	# Calling the encoding function
-	coded = encoder(message)
+            print("\n")
+        
+        elif choice == "2":
+            encrypted_text = input("Enter the ciphertext: ") # Get the ciphertext
+            decrypted_text = decode_and_decrypt(encrypted_text, private_key, n) #  Decrypt and decode the ciphertext
+            print("Decrypted text:", decrypted_text) #  Print the decrypted text
 
-	print("Initial message:")
-	print(message)
-	print("\n\nThe encoded message(encrypted by public key)\n")
-	print(''.join(str(p) for p in coded))
-	print("\n\nThe decoded message(decrypted by public key)\n")
-	print(''.join(str(p) for p in decoder(coded)))
-	
-	
+            print("\n")
+
+        else:
+            print("Invalid input!") # Print an error message
+
+        choice = input("Enter your choice: ") # Get the user's choice
+
+    print("Exiting...\n---a program by Layan Moyura---") 
+
+if __name__ == "__main__":
+    main()
