@@ -35,7 +35,7 @@ def set_keys(): # Set the public and private keys
             break # If the number is coprime with fi, stop
         e += 1 # If the number is not coprime with fi, pick another number
 
-    public_key = e # Set the public key
+    public_key = e # Set the public key to relatively prime number to fi
 
     d = 2 # Pick a random number between 1 and fi
     while True:
